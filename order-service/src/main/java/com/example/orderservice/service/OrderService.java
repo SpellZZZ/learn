@@ -7,7 +7,12 @@ import com.example.orderservice.dto.OrderRequest;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.model.OrderLineItems;
 import com.example.orderservice.repo.OrderRepo;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.DiscoveryClient;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Arrays;
@@ -15,15 +20,18 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class OrderService {
 
     final private OrderRepo orderRepo;
-    final private WebClient webClient;
+    final private WebClient.Builder webClientBuilder;
 
-    OrderService(OrderRepo orderRepo, WebClient webClient) {
-        this.orderRepo = orderRepo;
-        this.webClient = webClient;
+    OrderService (OrderRepo orderRepo, WebClient.Builder webClientBuilder) {
+        this.orderRepo  = orderRepo;
+        this.webClientBuilder = webClientBuilder;
     }
+
+
 
 
     public void placeOrder(OrderRequest orderRequest) {
@@ -41,9 +49,24 @@ public class OrderService {
         List<String> skuCodes = order1.getOrderLineItems().stream()
                 .map(OrderLineItems::getSkuCode).toList();
 
-        InventoryResponse [] inventoryResponsesArray = webClient.get()
-                .uri("http://localhost:8082/api/inventory",
+
+
+        /*InventoryResponse [] inventoryResponsesArray = webClientBuilder.build().get()
+                .uri("http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
+                .retrieve()
+                .bodyToMono(InventoryResponse[].class)
+                .block();*/
+
+
+
+        InventoryResponse [] inventoryResponsesArray = webClientBuilder.build().get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("http")
+                        .host("inventory-service")
+                        .path("/api/inventory")
+                        .queryParam("skuCode", skuCodes)
+                        .build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
                 .block();
