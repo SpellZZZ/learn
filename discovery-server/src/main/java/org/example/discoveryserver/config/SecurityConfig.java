@@ -1,3 +1,4 @@
+
 package org.example.discoveryserver.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +22,14 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Value("${app.eureka.username}")
     private String username;
-    @Value("${app.eureka.password")
+    @Value("${app.eureka.password}")
     private String password;
 
 
@@ -35,7 +38,7 @@ public class SecurityConfig {
     public InMemoryUserDetailsManager userDetailsService() throws Exception{
         UserDetails user = User.withDefaultPasswordEncoder()
                 .username(username)
-                .password( password)
+                .password(password)
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(user);
