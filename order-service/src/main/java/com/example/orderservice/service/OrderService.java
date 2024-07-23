@@ -34,7 +34,7 @@ public class OrderService {
 
 
 
-    public void placeOrder(OrderRequest orderRequest) {
+    public String placeOrder(OrderRequest orderRequest) {
         Order order1 = new Order();
         order1.setOrderNumber(UUID.randomUUID().toString());
 
@@ -75,7 +75,8 @@ public class OrderService {
                 .allMatch(InventoryResponse::isInStock);
 
         if(allProductInStock){
-            //orderRepo.save(order1);
+            orderRepo.save(order1);
+            return "Order Placed Successfully";
         } else {
             throw new IllegalArgumentException("product not in the stock");
         }
